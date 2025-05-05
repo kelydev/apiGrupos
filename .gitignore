@@ -1,0 +1,38 @@
+# Binarios compilados
+# Reemplaza 'apiGrupos' si tu ejecutable tiene otro nombre
+/apiGrupos
+*.exe
+*.out
+
+# Dependencias (si usas Go Modules y haces 'go mod vendor')
+/vendor/
+
+# Archivos de entorno (¡No subir secretos a Git!)
+.env
+.env.*
+!.env.example # Pero sí permitir archivos de ejemplo
+
+# Archivos de logs
+*.log
+logs/
+
+# Archivos generados por el sistema operativo
+.DS_Store
+Thumbs.db
+._*
+
+# Archivos de configuración de IDEs/Editores
+.vscode/
+.idea/
+
+# Directorios temporales o de caché
+/tmp/
+*.tmp
+*.swp
+
+# Archivos subidos (basado en tu código `uploadDir = "uploads"`)
+/uploads/
+
+# Archivos específicos de Go (menos comunes, pero por si acaso)
+# *.o
+# *.a
