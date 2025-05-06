@@ -83,6 +83,7 @@ func removeFile(relativePath *string) error {
 }
 
 // GetGruposHandler handles fetching all groups or searching based on criteria with pagination.
+// It *always* returns groups with their associated investigators.
 func GetGruposHandler(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Read search params
@@ -96,7 +97,8 @@ func GetGruposHandler(db *sql.DB) http.HandlerFunc {
 		page, limit := utils.GetPaginationParams(r)
 		offset := (page - 1) * limit
 
-		var data interface{} // Holds either []Grupo or []GrupoWithInvestigadores
+		// Always expect the detailed structure
+		var gruposConDetalles []models.GrupoWithInvestigadores
 		var totalItems int
 		var err error
 
@@ -105,18 +107,14 @@ func GetGruposHandler(db *sql.DB) http.HandlerFunc {
 
 		if isSearch {
 			// Perform search: returns groups with investigators and roles
-			var gruposConDetalles []models.GrupoWithInvestigadores
 			gruposConDetalles, totalItems, err = repository.SearchGrupos(db, groupName, investigatorName, year, lineaInvestigacion, tipoInvestigacion, limit, offset)
-			data = gruposConDetalles
 		} else {
-			// Get all groups (simple list)
-			var gruposSimples []models.Grupo
-			gruposSimples, totalItems, err = repository.GetAllGrupos(db, limit, offset)
-			data = gruposSimples
+			// Get all groups *with details* when no search parameters are present
+			gruposConDetalles, totalItems, err = repository.GetAllGruposWithDetails(db, limit, offset)
 		}
 
 		if err != nil {
-			log.Printf("Error getting/searching groups: %v", err)
+			log.Printf("Error getting/searching groups with details: %v", err)
 			http.Error(w, "Internal server error", http.StatusInternalServerError)
 			return
 		}
@@ -133,9 +131,9 @@ func GetGruposHandler(db *sql.DB) http.HandlerFunc {
 			Limit:       limit,
 		}
 
-		// Create paginated response
+		// Create paginated response with the detailed data
 		response := models.PaginatedResponse{
-			Data:       data,
+			Data:       gruposConDetalles,
 			Pagination: pagination,
 		}
 
