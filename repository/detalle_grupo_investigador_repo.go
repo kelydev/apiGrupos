@@ -3,7 +3,6 @@ package repository
 import (
 	"database/sql"
 	"fmt"
-
 	"github.com/GoogleCloudPlatform/golang-samples/run/helloworld/models"
 )
 
@@ -77,4 +76,40 @@ func UpdateDetalleGrupoInvestigador(db *sql.DB, detalle *models.DetalleGrupoInve
 		return fmt.Errorf("error updating group-investigator detail: %w", err)
 	}
 	return nil
+}
+
+// GetAllDetallesGrupoInvestigador retrieves all group-investigator relationships with pagination.
+func GetAllDetallesGrupoInvestigador(db *sql.DB, limit, offset int) ([]models.DetalleGrupoInvestigador, int, error) {
+	// Query for the data page
+	query := `
+		SELECT dgi.idGrupo_Investigador, dgi.idGrupo, dgi.idInvestigador, dgi.rol, dgi.createdAt, dgi.updatedAt
+		FROM Grupo_Investigador dgi
+		ORDER BY dgi.idGrupo_Investigador
+		LIMIT $1 OFFSET $2
+	`
+	rows, err := db.Query(query, limit, offset)
+	if err != nil {
+		return nil, 0, fmt.Errorf("error querying group-investigator details page: %w", err)
+	}
+	defer rows.Close()
+
+	detalles := []models.DetalleGrupoInvestigador{}
+	for rows.Next() {
+		var d models.DetalleGrupoInvestigador
+		if err := rows.Scan(&d.ID, &d.IDGrupo, &d.IDInvestigador, &d.Rol, &d.CreatedAt, &d.UpdatedAt); err != nil {
+			return nil, 0, fmt.Errorf("error scanning group-investigator detail row: %w", err)
+		}
+		detalles = append(detalles, d)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, 0, fmt.Errorf("error after iterating through group-investigator detail rows: %w", err)
+	}
+
+	// Query for the total count
+	var total int
+	countQuery := `SELECT COUNT(*) FROM Grupo_Investigador`
+	if err := db.QueryRow(countQuery).Scan(&total); err != nil {
+		return nil, 0, fmt.Errorf("error querying total group-investigator detail count: %w", err)
+	}
+	return detalles, total, nil
 }

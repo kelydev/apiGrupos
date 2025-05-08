@@ -526,3 +526,41 @@ func GetAllGruposWithDetailsHandler(db *sql.DB) http.HandlerFunc {
 		json.NewEncoder(w).Encode(response)
 	}
 }
+
+// GetAllDetallesGrupoInvestigadorHandler retrieves all group-investigator relationships with pagination.
+func GetAllDetallesGrupoInvestigadorHandler(db *sql.DB) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		// Read pagination params
+		page, limit := utils.GetPaginationParams(r)
+		offset := (page - 1) * limit
+
+		// Call the repository function to get all details
+		detalles, totalItems, err := repository.GetAllDetallesGrupoInvestigador(db, limit, offset)
+		if err != nil {
+			log.Printf("Error getting all group-investigator details: %v", err)
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			return
+		}
+
+		// Calculate pagination metadata
+		totalPages := 0
+		if totalItems > 0 {
+			totalPages = int(math.Ceil(float64(totalItems) / float64(limit)))
+		}
+		pagination := models.PaginationMetadata{
+			TotalItems:  totalItems,
+			TotalPages:  totalPages,
+			CurrentPage: page,
+			Limit:       limit,
+		}
+
+		// Create paginated response
+		response := models.PaginatedResponse{
+			Data:       detalles,
+			Pagination: pagination,
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(response)
+	}
+}

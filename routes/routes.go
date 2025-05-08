@@ -28,6 +28,7 @@ func SetupRoutes(db *sql.DB) *mux.Router {
 	r.HandleFunc("/grupos/with-details", controllers.GetAllGruposWithDetailsHandler(db)).Methods("GET")
 	r.HandleFunc("/detalles/{id}", controllers.GetDetalleGrupoInvestigadorHandler(db)).Methods("GET")
 	r.HandleFunc("/grupos/{grupoID}/detalles", controllers.GetDetallesByGrupoHandler(db)).Methods("GET")
+	r.HandleFunc("/detalles", controllers.GetAllDetallesGrupoInvestigadorHandler(db)).Methods("GET")
 
 	// Static file server (public)
 	fs := http.FileServer(http.Dir("./uploads/"))
