@@ -36,3 +36,4 @@ Thumbs.db
 # Archivos específicos de Go (menos comunes, pero por si acaso)
 # *.o
 # *.a
+credencial.json
